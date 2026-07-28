@@ -1,0 +1,66 @@
+import torch
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from config import MODEL_NAME, SOURCE_LANGUAGE, TARGET_LANGUAGE
+
+# ----------------------------
+# CPU Optimization
+# ----------------------------
+torch.set_num_threads(12)
+torch.set_num_interop_threads(12)
+
+print("Loading tokenizer...")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+print("Tokenizer loaded.")
+
+print("Loading model...")
+model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
+model.eval()
+print("Model loaded successfully.")
+
+# ----------------------------
+# Warm-up Model
+# ----------------------------
+print("Warming up model...")
+
+tokenizer.src_lang = SOURCE_LANGUAGE
+
+dummy = tokenizer("Hello", return_tensors="pt")
+
+with torch.inference_mode():
+    model.generate(
+        **dummy,
+        forced_bos_token_id=tokenizer.convert_tokens_to_ids(TARGET_LANGUAGE),
+        max_new_tokens=10
+    )
+
+print("Model ready.")
+
+# ----------------------------
+# Translation Function
+# ----------------------------
+def translate_text(text):
+
+    tokenizer.src_lang = SOURCE_LANGUAGE
+
+    encoded = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True
+    )
+
+    with torch.inference_mode():
+        generated_tokens = model.generate(
+            **encoded,
+            forced_bos_token_id=tokenizer.convert_tokens_to_ids(TARGET_LANGUAGE),
+            max_new_tokens=64,
+            num_beams=1,
+            do_sample=False,
+            use_cache=True
+        )
+
+    translated_text = tokenizer.batch_decode(
+        generated_tokens,
+        skip_special_tokens=True
+    )[0]
+
+    return translated_text
