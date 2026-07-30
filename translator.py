@@ -13,7 +13,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 print("Tokenizer loaded.")
 
 print("Loading model...")
-model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
+model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME, use_safetensors=True)
 model.eval()
 print("Model loaded successfully.")
 
