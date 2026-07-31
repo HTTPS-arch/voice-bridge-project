@@ -1,5 +1,6 @@
 from speech_to_text import speech_to_text
 from translator import translate_text
+from text_to_speech import speak_text
 
 def main():
 
@@ -19,6 +20,15 @@ def main():
 
     print(f"\nRecognized Text : {recognized_text}")
     print(f"Translated Text : {translated_text}")
+    
+    # Step 3: Text to Speech
+    print("\nChoose voice for playback:")
+    print("1. Male")
+    print("2. Female")
+    choice = input("Enter choice (1/2): ").strip()
+
+    gender = "male" if choice == "1" else "female"
+    speak_text(translated_text, gender=gender)
 
     # Real Accuracy (calculated from model confidence scores)
     speech_val = float(speech_accuracy.strip('%'))
