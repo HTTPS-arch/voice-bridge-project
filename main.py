@@ -1,6 +1,7 @@
 from speech_to_text import speech_to_text
 from translator import translate_text
 from text_to_speech import speak_text
+from config import LANGUAGES
 
 def main():
 
@@ -8,11 +9,17 @@ def main():
     print("VOICEBRIDGE PROJECT")
     print("=" * 60)
 
+    print("\nChoose target language:")
+    for key, lang in LANGUAGES.items():
+        print(f"{key}. {lang['name']}")
+    lang_choice = input("Enter choice: ").strip()
+    target_lang = LANGUAGES.get(lang_choice, LANGUAGES["1"])["code"]
+
     # Step 1: Speech to Text
     recognized_text, speech_accuracy = speech_to_text()
 
     # Step 2: Translate
-    translated_text, translation_accuracy = translate_text(recognized_text)
+    translated_text, translation_accuracy = translate_text(recognized_text, target_lang)
 
     print("\n" + "=" * 60)
     print("FINAL OUTPUT")
@@ -20,7 +27,7 @@ def main():
 
     print(f"\nRecognized Text : {recognized_text}")
     print(f"Translated Text : {translated_text}")
-    
+
     # Step 3: Text to Speech
     print("\nChoose voice for playback:")
     print("1. Male")

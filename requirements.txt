@@ -41,4 +41,5 @@ tqdm==4.69.0
 transformers==5.14.1
 typer==0.27.0
 typing_extensions==4.16.0
-pyttsx3==2.99
+edge-tts==6.1.19
+pygame==2.6.1
