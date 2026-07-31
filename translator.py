@@ -38,6 +38,8 @@ print("Model ready.")
 # ----------------------------
 # Translation Function
 # ----------------------------
+import torch.nn.functional as F
+
 def translate_text(text):
 
     tokenizer.src_lang = SOURCE_LANGUAGE
@@ -49,18 +51,33 @@ def translate_text(text):
     )
 
     with torch.inference_mode():
-        generated_tokens = model.generate(
+        output = model.generate(
             **encoded,
             forced_bos_token_id=tokenizer.convert_tokens_to_ids(TARGET_LANGUAGE),
             max_new_tokens=64,
             num_beams=1,
             do_sample=False,
-            use_cache=True
+            use_cache=True,
+            output_scores=True,
+            return_dict_in_generate=True
         )
 
     translated_text = tokenizer.batch_decode(
-        generated_tokens,
+        output.sequences,
         skip_special_tokens=True
     )[0]
 
-    return translated_text
+    # Real Accuracy from token generation probabilities
+    token_probs = []
+    for score in output.scores:
+        probs = F.softmax(score, dim=-1)
+        top_prob = torch.max(probs).item()
+        token_probs.append(top_prob)
+
+    if token_probs:
+        avg_confidence = sum(token_probs) / len(token_probs) * 100
+        accuracy = f"{avg_confidence:.1f}%"
+    else:
+        accuracy = "0%"
+
+    return translated_text, accuracy

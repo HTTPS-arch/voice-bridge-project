@@ -6,7 +6,6 @@ from scipy.io.wavfile import write
 from whisper_model import model
 
 
-
 def speech_to_text():
 
     # Initialize Microphone
@@ -44,22 +43,28 @@ def speech_to_text():
 
     processing_time = time.time() - start
 
+    # -----------------------------
+    # Collect recognized text
+    # and confidence information
+    # -----------------------------
     recognized_text = ""
+    logprobs = []
 
     for segment in segments:
         recognized_text += segment.text + " "
+        logprobs.append(segment.avg_logprob)
 
     recognized_text = recognized_text.strip()
 
-    # Estimated Accuracy
-    if len(recognized_text) > 25:
-        accuracy = "95%"
-    elif len(recognized_text) > 10:
-        accuracy = "90%"
-    elif len(recognized_text) > 0:
-        accuracy = "85%"
+    # -----------------------------
+    # Calculate confidence
+    # -----------------------------
+    if logprobs:
+        avg_logprob = sum(logprobs) / len(logprobs)
+        confidence = max(0, min(100, (1 + avg_logprob) * 100))
+        accuracy = f"{confidence:.1f}%"
     else:
-        accuracy = "Low"
+        accuracy = "0%"
 
     print(" RESULT ")
     print("Recognized Text:", recognized_text)
@@ -67,7 +72,7 @@ def speech_to_text():
     print("Model Accuracy :", accuracy)
     print("\nASR Model : Whisper Base (Faster-Whisper)")
 
-    return recognized_text
+    return recognized_text, accuracy
 
 
 if __name__ == "__main__":
