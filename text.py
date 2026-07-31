@@ -4,20 +4,14 @@ import speech_recognition as sr
 from scipy.io.wavfile import write
 from faster_whisper import WhisperModel
 
-
-def speech_to_text():
-
-    # Load Whisper ASR Model
-    print("Loading Whisper ASR Model...")
-
-    model = WhisperModel(
+model = WhisperModel(
         "base",
         device="cpu",
         compute_type="int8"
     )
 
-    print("Model Loaded Successfully!\n")
 
+def speech_to_text():
     # Initialize Microphone
     recognizer = sr.Recognizer()
 

@@ -1,5 +1,6 @@
 from text import speech_to_text
 from translator import translate_text
+from text_to_speech import text_to_speech
 
 def main():
 
@@ -12,10 +13,13 @@ def main():
 
     # Step 2: Translate
     translated_text = translate_text(recognized_text)
+    voice_choice = input("\nChoose voice (male/female): ").strip().lower()
+    text_to_speech(translated_text, voice=voice_choice)
 
     print("\n" + "=" * 60)
     print("FINAL OUTPUT")
     print("=" * 60)
+
 
     print(f"\nRecognized Text : {recognized_text}")
     print(f"Translated Text : {translated_text}")
