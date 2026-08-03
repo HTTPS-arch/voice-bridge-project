@@ -1,4 +1,4 @@
-from text import speech_to_text
+from eng_to_ger import english_audio_to_german_text
 from translator import translate_text
 from text_to_speech import text_to_speech
 
@@ -9,7 +9,7 @@ def main():
     print("=" * 60)
 
     # Step 1: Speech to Text
-    recognized_text = speech_to_text()
+    recognized_text = english_audio_to_german_text()
 
     # Step 2: Translate
     translated_text = translate_text(recognized_text)

@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Voice models (large binary files - download separately)
+voices/*.onnx
+voices/*.onnx.json
+
+# Generated audio output
+*.wav
+temp_de.wav
+temp_en.wav
+translated_output_*.wav
+
+# Hugging Face / model cache
+.cache/
+**/models--*/
+
+# Environment / secrets
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store

@@ -11,6 +11,7 @@ import sounddevice as sd
 VOICE_MODELS = {
     "male": "voices/de_DE-thorsten-medium.onnx",
     "female": "voices/de_DE-eva_k-x_low.onnx",
+    "english": "voices/en_US-lessac-medium.onnx",
 }
 
 
@@ -66,8 +67,8 @@ def text_to_speech(text, voice="male", filename=None, play_audio=True):
 
 
 # Run only if this file is executed directly
-# if __name__ == "__main__":
-#     sample_text = "Hallo, wie geht es dir?"
+if __name__ == "__main__":
+    sample_text = "Hallo, wie geht es dir?"
 
-#     text_to_speech(sample_text, voice="male")
-#     text_to_speech(sample_text, voice="female")
+    text_to_speech(sample_text, voice="male")
+    text_to_speech(sample_text, voice="female")
