@@ -1,66 +1,58 @@
-import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from config import MODEL_NAME, SOURCE_LANGUAGE, TARGET_LANGUAGE
+from deep_translator import GoogleTranslator
+from config import SOURCE_LANGUAGE, TARGET_LANGUAGE
 
-# ----------------------------
-# CPU Optimization
-# ----------------------------
-torch.set_num_threads(12)
-torch.set_num_interop_threads(12)
+# ==========================================
+# Load Google Translator
+# ==========================================
 
-print("Loading tokenizer...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-print("Tokenizer loaded.")
+print("Loading Google Translator...")
+print("Google Translator Loaded Successfully!\n")
 
-print("Loading model...")
-model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
-model.eval()
-print("Model loaded successfully.")
 
-# ----------------------------
-# Warm-up Model
-# ----------------------------
-print("Warming up model...")
-
-tokenizer.src_lang = SOURCE_LANGUAGE
-
-dummy = tokenizer("Hello", return_tensors="pt")
-
-with torch.inference_mode():
-    model.generate(
-        **dummy,
-        forced_bos_token_id=tokenizer.convert_tokens_to_ids(TARGET_LANGUAGE),
-        max_new_tokens=10
-    )
-
-print("Model ready.")
-
-# ----------------------------
+# ==========================================
 # Translation Function
-# ----------------------------
+# ==========================================
+
 def translate_text(text):
 
-    tokenizer.src_lang = SOURCE_LANGUAGE
+    if not text.strip():
+        return ""
 
-    encoded = tokenizer(
-        text,
-        return_tensors="pt",
-        truncation=True
-    )
+    try:
 
-    with torch.inference_mode():
-        generated_tokens = model.generate(
-            **encoded,
-            forced_bos_token_id=tokenizer.convert_tokens_to_ids(TARGET_LANGUAGE),
-            max_new_tokens=64,
-            num_beams=1,
-            do_sample=False,
-            use_cache=True
-        )
+        translated_text = GoogleTranslator(
+            source=SOURCE_LANGUAGE,
+            target=TARGET_LANGUAGE
+        ).translate(text)
 
-    translated_text = tokenizer.batch_decode(
-        generated_tokens,
-        skip_special_tokens=True
-    )[0]
+        return translated_text
 
-    return translated_text
+    except Exception as e:
+
+        print("Translation Error :", e)
+
+        return "Translation Failed"
+
+
+# ==========================================
+# Test Translator
+# ==========================================
+
+if __name__ == "__main__":
+
+    print("=" * 50)
+    print("GOOGLE TRANSLATOR")
+    print("=" * 50)
+
+    while True:
+
+        text = input("\nEnter English Text (type 'exit' to quit): ")
+
+        if text.lower() == "exit":
+            print("\nProgram Closed.")
+            break
+
+        translated = translate_text(text)
+
+        print("\nOriginal Text   :", text)
+        print("Translated Text :", translated)

@@ -1,5 +1,7 @@
 from text import speech_to_text
 from translator import translate_text
+from voice import speak_text
+
 
 def main():
 
@@ -10,7 +12,11 @@ def main():
     # Step 1: Speech to Text
     recognized_text = speech_to_text()
 
-    # Step 2: Translate
+    if not recognized_text:
+        print("\nNo speech detected.")
+        return
+
+    # Step 2: Translation
     translated_text = translate_text(recognized_text)
 
     print("\n" + "=" * 60)
@@ -20,14 +26,13 @@ def main():
     print(f"\nRecognized Text : {recognized_text}")
     print(f"Translated Text : {translated_text}")
 
-    # Demo Accuracy (for presentation only)
-    speech_accuracy = 92
-    translation_accuracy = 95
-    overall_accuracy = (speech_accuracy + translation_accuracy) / 2
+    print("\nGenerating Voice...")
 
-    print(f"\nSpeech Recognition Accuracy (Estimated) : {speech_accuracy}%")
-    print(f"Translation Accuracy (Estimated)        : {translation_accuracy}%")
-    print(f"Overall System Accuracy (Estimated)     : {overall_accuracy:.1f}%")
+    # Step 3: Text to Speech
+    speak_text(translated_text)
+
+    print("\nVoiceBridge Completed Successfully.")
+
 
 if __name__ == "__main__":
     main()
