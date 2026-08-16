@@ -1,14 +1,22 @@
-# NLLB-200 Model Configuration
+# Google Cloud Translation API v3 Configuration
 
-MODEL_NAME = "facebook/nllb-200-distilled-600M"
+GOOGLE_PROJECT_ID = "voicebridge-504507"
 
-SOURCE_LANGUAGE = "eng_Latn"
+SOURCE_LANGUAGE = "en"
 
-# Default target language (used only for model warm-up)
-TARGET_LANGUAGE = "fra_Latn"
+# Default target language (used only for reference)
+TARGET_LANGUAGE = "fr"
 
 # Supported target languages for user selection
 LANGUAGES = {
-    "1": {"name": "French", "code": "fra_Latn"},
-    "2": {"name": "German", "code": "deu_Latn"},
+    "1": {"name": "French", "code": "fr"},
+    "2": {"name": "German", "code": "de"},
 }
+
+# ----------------------------
+# Defaults for automated/non-interactive runs
+# ----------------------------
+# Change these to switch the default test language/voice without
+# needing to type choices into the terminal each run.
+DEFAULT_TARGET_LANG_KEY = "2"       # "1" = French, "2" = German
+DEFAULT_VOICE_GENDER = "female"     # "male" or "female"

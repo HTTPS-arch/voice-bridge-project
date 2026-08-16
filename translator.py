@@ -1,89 +1,61 @@
-import torch
-import torch.nn.functional as F
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from config import MODEL_NAME, SOURCE_LANGUAGE, TARGET_LANGUAGE
+import os
+import time
+from dotenv import load_dotenv
+from google.cloud import translate_v3 as translate
+from config import GOOGLE_PROJECT_ID, SOURCE_LANGUAGE, TARGET_LANGUAGE
 
 # ----------------------------
-# CPU Optimization
+# Load environment variables from .env file
 # ----------------------------
-torch.set_num_threads(12)
-torch.set_num_interop_threads(12)
-
-print("Loading tokenizer...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-print("Tokenizer loaded.")
-
-print("Loading model...")
-model = AutoModelForSeq2SeqLM.from_pretrained(
-    MODEL_NAME,
-    use_safetensors=True
-)
-model.eval()
-print("Model loaded successfully.")
+# This automatically sets GOOGLE_APPLICATION_CREDENTIALS from the .env
+# file in the project root, so you no longer need to run
+# $env:GOOGLE_APPLICATION_CREDENTIALS=... manually every terminal session.
+load_dotenv()
 
 # ----------------------------
-# Warm-up Model
+# Google Cloud Translation Client Setup
 # ----------------------------
-print("Warming up model...")
+print("Initializing Google Cloud Translation client...")
+client = translate.TranslationServiceClient()
+parent = f"projects/{GOOGLE_PROJECT_ID}/locations/global"
+print("Translation client ready.")
 
-tokenizer.src_lang = SOURCE_LANGUAGE
-
-dummy = tokenizer(
-    "Hello",
-    return_tensors="pt"
-)
-
-with torch.inference_mode():
-    model.generate(
-        **dummy,
-        forced_bos_token_id=tokenizer.convert_tokens_to_ids(TARGET_LANGUAGE),
-        max_new_tokens=10
-    )
-
-print("Model ready.")
 
 # ----------------------------
 # Translation Function
 # ----------------------------
 def translate_text(text, target_language=TARGET_LANGUAGE):
+    """
+    Translates text using Google Cloud Translation API v3.
 
-    tokenizer.src_lang = SOURCE_LANGUAGE
+    Returns:
+        tuple: (translated_text, execution_time_seconds)
 
-    encoded = tokenizer(
-        text,
-        return_tensors="pt",
-        truncation=True
+    Note: Google Cloud Translation API v3 does not return a token-level
+    confidence score the way the previous NLLB-200 local model did.
+    We report execution time instead, as a meaningful, honest metric
+    for API-based translation performance.
+    """
+
+    start_time = time.time()
+
+    response = client.translate_text(
+        parent=parent,
+        contents=[text],
+        source_language_code=SOURCE_LANGUAGE,
+        target_language_code=target_language,
     )
 
-    with torch.inference_mode():
-        output = model.generate(
-            **encoded,
-            forced_bos_token_id=tokenizer.convert_tokens_to_ids(target_language),
-            max_new_tokens=64,
-            num_beams=1,
-            do_sample=False,
-            use_cache=True,
-            output_scores=True,
-            return_dict_in_generate=True
-        )
+    execution_time = time.time() - start_time
 
-    translated_text = tokenizer.batch_decode(
-        output.sequences,
-        skip_special_tokens=True
-    )[0]
+    translated_text = response.translations[0].translated_text
 
-    # Compute translation confidence from token probabilities
-    token_probs = []
+    return translated_text, execution_time
 
-    for score in output.scores:
-        probs = F.softmax(score, dim=-1)
-        top_prob = torch.max(probs).item()
-        token_probs.append(top_prob)
 
-    if token_probs:
-        avg_confidence = (sum(token_probs) / len(token_probs)) * 100
-        accuracy = f"{avg_confidence:.1f}%"
-    else:
-        accuracy = "0%"
-
-    return translated_text, accuracy
+if __name__ == "__main__":
+    sample = "Hello, how are you?"
+    result, exec_time = translate_text(sample, "de")
+    print("Original:", sample)
+    print("Translated:", result)
+    print(f"Execution Time: {exec_time:.3f} seconds")
