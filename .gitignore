@@ -1,5 +1,43 @@
+
+# Environment variables and API keys
+.env
+.env.*
+!.env.example
+
+# Google Cloud credentials
+*credentials*.json
+*service-account*.json
+*service_account*.json
+*translate*.json
+*.pem
+*.key
+GoogleCredentials/
+
+# Python virtual environment
 venv/
+.venv/
+env/
+
+# Python cache
 __pycache__/
-*.pyc
-temp.wav
-translated_voice.mp3
+*.py[cod]
+.pytest_cache/
+
+# Local logs and temporary files
+*.log
+*.tmp
+.DS_Store
+
+# Generated audio files
+*.wav
+*.mp3
+
+# IDE files
+.vscode/
+.idea/
+
+# Local model weights
+piper_voices/*.onnx
+
+# Allow greeting audio required by agent
+!greeting.wav

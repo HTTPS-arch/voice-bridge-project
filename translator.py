@@ -1,58 +1,83 @@
-from deep_translator import GoogleTranslator
-from config import SOURCE_LANGUAGE, TARGET_LANGUAGE
 
-# ==========================================
-# Load Google Translator
-# ==========================================
+import os
+import time
 
-print("Loading Google Translator...")
-print("Google Translator Loaded Successfully!\n")
+from dotenv import load_dotenv
+from google.cloud import translate_v3 as translate
 
+from config import GOOGLE_PROJECT_ID, SUPPORTED_LANGUAGES
 
-# ==========================================
-# Translation Function
-# ==========================================
+# Load Google Cloud credentials from .env
+load_dotenv()
 
-def translate_text(text):
+print("Initializing Google Cloud Translation client...")
 
-    if not text.strip():
-        return ""
+client = translate.TranslationServiceClient()
 
-    try:
+parent = f"projects/{GOOGLE_PROJECT_ID}/locations/global"
 
-        translated_text = GoogleTranslator(
-            source=SOURCE_LANGUAGE,
-            target=TARGET_LANGUAGE
-        ).translate(text)
-
-        return translated_text
-
-    except Exception as e:
-
-        print("Translation Error :", e)
-
-        return "Translation Failed"
+print("Google Cloud Translation client ready.")
 
 
-# ==========================================
-# Test Translator
-# ==========================================
+def get_target_language(source_language):
+    """Choose the opposite language automatically."""
+
+    language_pairs = {
+        "en": "de",
+        "de": "en",
+    }
+
+    if source_language not in SUPPORTED_LANGUAGES:
+        raise ValueError(
+            f"Unsupported source language: {source_language}"
+        )
+
+    return language_pairs[source_language]
+
+
+def translate_text(text, source_language):
+    """
+    Translate English to German or German to English.
+
+    Returns:
+        (translated_text, execution_time)
+    """
+
+    if not text or not text.strip():
+        return "", 0.0
+
+    source_language = source_language.lower()
+
+    target_language = get_target_language(source_language)
+
+    start_time = time.time()
+
+    response = client.translate_text(
+        parent=parent,
+        contents=[text],
+        source_language_code=source_language,
+        target_language_code=target_language,
+    )
+
+    execution_time = time.time() - start_time
+
+    translated_text = response.translations[0].translated_text
+
+    return translated_text, execution_time
+
 
 if __name__ == "__main__":
 
-    print("=" * 50)
-    print("GOOGLE TRANSLATOR")
-    print("=" * 50)
+    samples = [
+        ("Hello, how are you?", "en"),
+        ("Hallo, wie geht es dir?", "de"),
+    ]
 
-    while True:
+    for sample, language in samples:
 
-        text = input("\nEnter English Text (type 'exit' to quit): ")
+        result, exec_time = translate_text(sample, language)
 
-        if text.lower() == "exit":
-            print("\nProgram Closed.")
-            break
-
-        translated = translate_text(text)
-
-        print("\nOriginal Text   :", text)
-        print("Translated Text :", translated)
+        print("\nOriginal:", sample)
+        print("Source language:", language)
+        print("Translated:", result)
+        print(f"Execution time: {exec_time:.3f} seconds")
